@@ -17,7 +17,7 @@ Dockerを使用して独自のDNSサーバー環境を構築し、NSDを権威DN
 
 
 ### **システム構成図**
-
+![システム構成図](https://github.com/KeishiNishio/Authoritative_and_Cache_server/blob/main/systemimage.png)
 
 ### **NSDの選択理由**
 
