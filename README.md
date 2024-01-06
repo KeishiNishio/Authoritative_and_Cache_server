@@ -1,7 +1,7 @@
-# NSDベースのDNSサーバー構築プロジェクト
+# キャッシュDNSサーバー、権威サーバーの構築
 
-このリポジトリは、NSD (Name Server Daemon) を使用してDNSサーバーを構築するための設定ファイル群。
-Dockerを使用して独自のDNSサーバー環境を構築し、NSDを権威DNSサーバーとして、UnboundをキャッシュDNSサーバーとして設定
+このリポジトリは、NSD (Name Server Daemon) Unboundを使用してDNSサーバーを構築するための設定ファイル群。
+Dockerを使用して独自のDNSサーバー環境（NSDを権威DNSサーバーとして、UnboundをキャッシュDNSサーバー）を構築する
 
 ## 技術スタック
 
