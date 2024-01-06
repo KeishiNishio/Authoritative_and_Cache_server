@@ -1,0 +1,31 @@
+version: '3'
+
+services:
+  authoritative:
+    build: ./authoritative
+    container_name: my-nsd-authoritative-server
+    ports:
+      - "1053:53/udp"
+      - "1053:53/tcp"
+    networks:
+      custom_network:
+        ipv4_address: 192.168.100.10
+
+  cache:
+    build: ./cache
+    container_name: my-nsd-cache-server
+    ports:
+      - "53:53/udp"
+      - "53:53/tcp"
+    networks:
+      custom_network:
+        ipv4_address: 192.168.100.11
+
+networks:
+  custom_network:
+    driver: bridge
+    ipam:
+      driver: default
+      config:
+        - subnet: 192.168.100.0/24
+          gateway: 192.168.100.1

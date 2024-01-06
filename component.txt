@@ -1,0 +1,12 @@
+project-root/
+│
+├── authoritative/
+│ ├── Dockerfile
+│ ├── nsd.conf
+│ └── zonefile.zone
+│
+├── cache/
+│ ├── Dockerfile
+│ └── unbound.conf
+├── docker-compose.yml
+└── README.md
