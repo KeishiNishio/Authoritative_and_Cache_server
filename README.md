@@ -1,125 +1,128 @@
-# キャッシュDNSサーバー、権威サーバーの構築
+# Cache DNS Server and Authoritative Server Setup
 
-このリポジトリは、NSD (Name Server Daemon) Unboundを使用してDNSサーバーを構築するための設定ファイル群。
-Dockerを使用して独自のDNSサーバー環境（NSDを権威DNSサーバーとして、UnboundをキャッシュDNSサーバー）を構築する
+---
 
-## 技術スタック
+## Overview
+
+This repository provides configuration files for building a DNS server using NSD (Name Server Daemon) and Unbound, leveraging Docker to create a custom DNS server environment. NSD serves as the authoritative DNS server, while Unbound functions as the cache DNS server.
+
+## Technology Stack
 
 - Docker
 - Docker Compose
-- NSD (権威DNSサーバー)
-- Unbound (キャッシュDNSサーバー)
+- NSD (Authoritative DNS Server)
+- Unbound (Cache DNS Server)
 
-## システム構成
+## System Configuration
 
-- **権威DNSサーバー（NSD）**: ドメインに対する名前解決行う。 `example.com`のゾーンファイルを含んでおり、このドメインに関する情報を管理 
-- **キャッシュDNSサーバー（Unbound）**: DNSクエリの結果を一時的に保存し、効率的な名前解決を実現。キャッシュサーバーは外部DNSサーバーへのクエリ転送も行う
+- **Authoritative DNS Server (NSD)**: Handles name resolution for the domain. Contains the zone file for `example.com`, managing information related to this domain.
+- **Cache DNS Server (Unbound)**: Temporarily stores DNS query results for efficient name resolution. The cache server also forwards queries to external DNS servers.
 
+### **System Architecture Diagram**
+![System Architecture Diagram](https://github.com/KeishiNishio/Authoritative_and_Cache_server/blob/main/systemimage.png)
 
-### **システム構成図**
-![システム構成図](https://github.com/KeishiNishio/Authoritative_and_Cache_server/blob/main/systemimage.png)
+### **Reason for Choosing NSD**
 
-### **NSDの選択理由**
+Traditionally, BIND has been widely used for DNS implementations. However, due to frequent vulnerabilities and security challenges in BIND, NSD was chosen as a superior alternative for its enhanced security, specialization in read-only functions, and simpler configuration compared to BIND.
 
-従来は、BINDがDNSの実装に広く使用されてきたようですが、BINDは脆弱性が度々発見され、セキュリティ的に運用が難しいことから、以下の観点から優れた代替手段としてNSDを選定しました。
+Reference:
+[NSD vs BIND Comparison](https://qiita.com/ohhara_shiojiri/items/497aaba989151fa84b3d)
 
-- BINDに比べて、高度なセキュリティ
-- 読み取り専用の機能に特化し、大規模な環境でも高速で安定したパフォーマンス
-- BINDと比較し、設定がシンプル
+## File Structure
 
-参考サイト
-
-[https://qiita.com/ohhara_shiojiri/items/497aaba989151fa84b3d](https://qiita.com/ohhara_shiojiri/items/497aaba989151fa84b3d)
-
-
-## ファイル構成
-以下に、主要なファイルとディレクトリの概要を示す
+A brief overview of the key files and directories:
 
 - `docker-compose.yml`
-  - このDocker Composeファイルには、NSD（Name Server Daemon）およびUnbound DNSサービスのDocker設定。このファイルでは、各サービスのビルド設定、ポートマッピング、ネットワーク設定などを定義。
-
+  - Docker Compose file containing Docker configurations for NSD and Unbound DNS services, defining build settings, port mapping, and network configurations for each service.
 - `authoritative/`
-  - 権威DNSサーバーに関連するファイル群
-    - `Dockerfile`: NSDのインストールと設定ファイルの配置を指示するDockerファイル
-    - `nsd.conf`: NSDの設定を定義
-    - `zonefile.zone`: DNSゾーン情報
-
+  - Files related to the authoritative DNS server.
+    - `Dockerfile`: Docker file directing the installation of NSD and configuration files.
+    - `nsd.conf`: Configuration definitions for NSD.
+    - `zonefile.zone`: DNS zone information.
 - `cache/`
-  - このディレクトリには、キャッシュDNSサーバーに関連
-    - `Dockerfile`: Unbound DNSキャッシュサーバーのインストールと設定ファイルの配置を指示するDockerファイル
-    - `unbound.conf`: Unboundの設定を定義
-
+  - Files related to the cache DNS server.
+    - `Dockerfile`: Docker file for installing and configuring the Unbound DNS cache server.
+    - `unbound.conf`: Configuration definitions for Unbound.
 - `README.md`
-- `component.txt`: ファイル構成を記述
+- `component.txt`: Describes the file composition.
 
-## 挙動
+## Behavior
 
-1. クライアントからのDNSクエリはまずキャッシュサーバー（Unbound）に送られる
-2. キャッシュサーバーは、キャッシュに回答がない場合、権威サーバー（NSD）にクエリを転送 
-3. 権威サーバーは`example.com`に関するクエリに回答し、その結果はキャッシュサーバーによって保存される
+1. DNS queries from clients are first sent to the cache server (Unbound).
+2. The cache server forwards queries to the authoritative server (NSD) if no answer is in the cache.
+3. The authoritative server responds to queries related to `example.com`, and the results are stored by the cache server.
 
-## 確認方法
+## Verification Steps
 
-システムの動作確認は以下の手順で行い
+To verify the system's functionality:
 
-1. DockerおよびDocker Composeを使用してサーバーを起動 
-2. `dig`コマンドを使用して、`example.com`に対するクエリをキャッシュサーバーに送信 
-3. 同じクエリを再度送信し、応答時間が短縮されていることを確認（キャッシュの効果）。
+1. Launch the servers using Docker and Docker Compose.
+2. Use the `dig` command to send queries to the cache server for `example.com`.
+3. Resend the same query and observe reduced response times (effect of caching).
 
-## セットアップ手順
+## Setup Instructions
     
-1. **Dockerイメージのビルド**: 次に、提供された`Dockerfile`を使用してDockerイメージをビルド 
+1. **Build Docker Images**: Use the provided `Dockerfile` to build Docker images.
     
-    ```
+    ```bash
     docker-compose build --no-cache
     ```
     
-2. **Dockerコンテナの起動**: 以下のコマンドでDockerコンテナを起動 
+2. **Launch Docker Containers**: Start the Docker containers with the command below.
     
-    ```
+    ```bash
     docker-compose up -d
     ```
 
+### Verifying Functionality
 
-### 挙動の確認
-
-以下のコマンドを実行すると、対応するIPアドレスが返送される
+Execute the following commands to receive corresponding IP addresses:
 
 ```bash
 dig @localhost example.com
 dig @localhost google.com
-
 ```
 
+## Other Useful Commands
 
-## 他便利なコマンド
+1. Delete all Docker cache system-wide:
 
-1. システム全体のDockerキャッシュを削除
+    ```bash
+    docker system prune --all --force
+    ```
 
-```bash
-docker system prune --all --force
-```
+2. Check if containers are part of the configured network:
 
-1. 設定したネットワークにコンテナが所属しているか確認
+    ```bash
+    docker network inspect nginx-network
+    ```
 
-```bash
-docker network inspect nginx-network
-```
+3. Check the status of containers:
 
-1. コンテナの状況確認
+    ```bash
+    docker ps -a
+    ```
 
-```bash
-docker ps -a
-```
+4. Stop all existing containers:
 
-1. 存在する全てのコンテナを停止
+    ```bash
+    docker stop $(docker ps -aq) || true
+    ```
 
-```bash
-docker stop $(docker ps -aq) || true
-```
+5. Remove all existing containers:
 
-1. 存在する全てのコンテナを削除
+    ```bash
+    docker rm -f $(docker ps -aq) || true
+    ```
 
-```bash
-docker rm -f $(docker ps -aq) || true
-```
+
+
+## Development Environment
+
+This project is developed in the following environment:
+
+- **Operating System**: macOS
+- **Docker**:
+  - Version: 24.0.5
+- **Docker Compose**:
+  - Version: 2.23.3
